@@ -1,37 +1,33 @@
 package busReser;
-
+import java.util.Date;
 import java.sql.*;
-//bus related data access object
-
-public class BusDAO {
-	public void displayBusInfo() throws SQLException // error thrown to caller (here main)
+public class BookingDAO {
+	public int getBookedCount(int busNo,Date date)throws SQLException
 	{
-		//establish database connection
-		String query = "select * from bus";
-		Connection con = DBConnection.getConnection();
-		Statement st= con.createStatement();
-		ResultSet rs=st.executeQuery(query);
-		
-		
-		while(rs.next())
-		{
-			System.out.println("Bus No: "+rs.getInt(1));
-			if(rs.getInt(2)==0)
-				System.out.println("AC : no");
-			else
-				System.out.println("AC : yes");
-			System.out.println("Capacity: "+rs.getInt(3));
-			System.out.println();
-		}
-		System.out.println("-------------------------------------------");
-	}
-	public int getCapacity(int id) throws SQLException
-	{
-		String query = "select capacity from bus where id="+id;
+		String query = "select count(passenger_name) from booking where bus_no= ? and travel_date=?";
 		Connection con=DBConnection.getConnection();
-		Statement st= con.createStatement();
-		ResultSet rs = st.executeQuery(query);
+		PreparedStatement pst = con.prepareStatement(query);
+		
+		java.sql.Date sqldate = new java.sql.Date(date.getTime());//convert java date to sql date
+		pst.setInt(1,busNo);
+		pst.setDate(2,sqldate);
+		
+		ResultSet rs = pst.executeQuery();
 		rs.next();
+		
 		return rs.getInt(1);
+	}
+	
+	public void addBooking (Booking booking) throws SQLException{
+		String query = "insert into booking values (?,?,? )";
+		Connection con = DBConnection.getConnection();
+		
+		java.sql.Date sqldate = new java.sql.Date(booking.date.getTime());
+		PreparedStatement pst = con.prepareStatement(query);
+		pst.setString(1, booking.passengerName);
+		pst.setInt(2, booking.busNo);
+		pst.setDate(3,sqldate);
+		
+		pst.executeUpdate();//returns no of rows affected
 	}
 }
